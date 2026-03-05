@@ -15,13 +15,14 @@
             padding: 40px 16px;
             min-height: 100vh;
         }
-        .container { width: 100%; maxWidth: 860px; }
+        .container { width: 100%; max-width: 860px; }
         .header { margin-bottom: 28px; }
-        .header h1 { fontSize: 22px; font-weight: 700; color: #0f172a; }
-        .header p { fontSize: 13px; color: #94a3b8; margin-top: 4px; }
+        .header h1 { font-size: 22px; font-weight: 700; color: #0f172a; }
+        .header p { font-size: 13px; color: #94a3b8; margin-top: 4px; }
         
         .card { background: #fff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
         
+        /* ── Desktop table layout ── */
         .grid-row { 
             display: grid; 
             grid-template-columns: 100px 1.2fr 1.2fr 110px 110px; 
@@ -55,6 +56,77 @@
         /* Hide arrows in number input */
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
+
+        /* ── Mobile card layout ── */
+        @media (max-width: 640px) {
+            body { padding: 20px 12px 40px; }
+            .header h1 { font-size: 18px; }
+            .header p { font-size: 12px; }
+
+            /* Hide desktop table header */
+            .grid-header { display: none; }
+
+            /* Each row becomes a stacked card */
+            .grid-row {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                padding: 14px 16px;
+                border-bottom: 1px solid #f1f5f9;
+            }
+
+            /* Service label row: badge left, costs right */
+            .row-top {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .cost-pair {
+                display: flex;
+                gap: 12px;
+                align-items: baseline;
+            }
+
+            .val-text {
+                font-size: 13px;
+                text-align: right;
+            }
+
+            /* Usage inputs side by side */
+            .usage-row {
+                display: flex;
+                gap: 8px;
+            }
+            .usage-row .input-group {
+                flex: 1;
+            }
+
+            /* Total row stays horizontal */
+            .total-row {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 6px;
+                padding: 14px 16px;
+            }
+            .total-row .total-label {
+                font-size: 13px;
+                font-weight: 700;
+                color: #334155;
+            }
+            .total-costs {
+                display: flex;
+                gap: 14px;
+                align-items: baseline;
+            }
+            .total-text { font-size: 15px; }
+
+            select { font-size: 13px; padding: 9px 10px; }
+            input  { font-size: 13px; padding: 9px 10px; }
+        }
     </style>
 </head>
 <body>
@@ -74,10 +146,10 @@
             <div class="hd-text" style="text-align: right;">INR</div>
         </div>
 
-        <div id="rows-container">
-            </div>
+        <div id="rows-container"></div>
 
-        <div class="grid-row total-row">
+        <!-- Desktop total row -->
+        <div class="grid-row total-row" id="total-row-desktop" style="display: grid;">
             <div style="grid-column: 1 / 4; font-size: 13px; font-weight: 700; color: #334155;">Total Cost</div>
             <div id="total-usd" class="total-text" style="text-align: right; color: #6366f1;">$0.0000</div>
             <div id="total-inr" class="total-text" style="text-align: right; color: #f59e0b;">₹0.00</div>
@@ -85,7 +157,7 @@
     </div>
 
     <p class="footer-note">
-        INR conversion at ₹84 / USD · Exotel billed in INR (₹0.30 inbound / ₹0.60 outbound per 60s pulse)
+        INR conversion at ₹91 / USD · Exotel billed in INR (₹0.30 inbound / ₹0.60 outbound per 60s pulse)
     </p>
 </div>
 
@@ -159,7 +231,6 @@ const PRICING = [
         {model:"chirp-standard", cost:0.016},
         {model:"chirp-3-hd",     cost:0.024}
     ]},
-    // Sarvam: ₹30/hr = ₹0.50/min. cost stored in USD equiv (₹0.50 / 91 ≈ 0.0055)
     { provider:"sarvam", type:"stt", billing:"per_minute", unit:"1_minute", currency:"USD", models:[
         {model:"saarika-v2",              cost:0.0055},
         {model:"saarika-v2-diarization",  cost:0.0082},
@@ -212,7 +283,6 @@ const PRICING = [
         {model:"polly-neural",    cost:0.016},
         {model:"polly-long-form", cost:0.100}
     ]},
-    // Sarvam: ₹15/10K chars → $0.0165/1K chars; ₹30/10K → $0.033/1K chars
     { provider:"sarvam", type:"tts", billing:"per_character", unit:"1000_characters", currency:"USD", models:[
         {model:"bulbul-v2",      cost:0.0165},
         {model:"bulbul-v3-beta", cost:0.033}
@@ -241,9 +311,9 @@ const PRICING = [
     const USD_TO_INR = 91;
     const ROWS_CONFIG = [
         { type: "telephony", label: "Telephony", color: "#f59e0b", inputLabel: "Minutes", input2: false },
-        { type: "stt", label: "STT", color: "#10b981", inputLabel: "Minutes", input2: false },
-        { type: "llm", label: "LLM", color: "#6366f1", inputLabel: "Input Tokens", input2: true, input2Label: "Output Tokens" },
-        { type: "tts", label: "TTS", color: "#f43f5e", inputLabel: "Characters", input2: false },
+        { type: "stt",       label: "STT",       color: "#10b981", inputLabel: "Minutes", input2: false },
+        { type: "llm",       label: "LLM",       color: "#6366f1", inputLabel: "Input Tokens", input2: true, input2Label: "Output Tokens" },
+        { type: "tts",       label: "TTS",       color: "#f43f5e", inputLabel: "Characters", input2: false },
     ];
 
     const allOptions = {};
@@ -254,7 +324,7 @@ const PRICING = [
         PRICING.filter(p => p.type === type).forEach(entry => {
             if (entry.models) entry.models.forEach(m => options.push({ label: `${entry.provider} · ${m.model}`, entry, model: m }));
             if (entry.regions) entry.regions.forEach(r => {
-                options.push({ label: `${entry.provider} · ${r.region} (${r.type}) inbound`, entry, region: r, direction: "inbound" });
+                options.push({ label: `${entry.provider} · ${r.region} (${r.type}) inbound`,  entry, region: r, direction: "inbound" });
                 options.push({ label: `${entry.provider} · ${r.region} (${r.type}) outbound`, entry, region: r, direction: "outbound" });
             });
         });
@@ -264,28 +334,41 @@ const PRICING = [
     const fmtUSD = v => v === 0 ? "—" : `$${v < 0.0001 ? v.toExponential(2) : v.toFixed(4)}`;
     const fmtINR = v => v === 0 ? "—" : `₹${v.toFixed(2)}`;
 
-    // Initial Build (Runs Once)
+    const isMobile = () => window.innerWidth <= 640;
+
     function init() {
         const container = document.getElementById('rows-container');
         let html = '';
-        
+
         ROWS_CONFIG.forEach(row => {
             const opts = allOptions[row.type];
             const optionsHtml = opts.map((o, idx) => `<option value="${idx}">${o.label}</option>`).join('');
 
             html += `
                 <div class="grid-row" id="row-${row.type}">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <div style="width: 8px; height: 8px; border-radius: 50%; background: ${row.color};"></div>
-                        <span style="font-size: 13px; font-weight: 600; color: #334155;">${row.label}</span>
+                    <!-- Desktop col 1 / Mobile top-bar label -->
+                    <div class="row-top">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 8px; height: 8px; border-radius: 50%; background: ${row.color}; flex-shrink:0;"></div>
+                            <span style="font-size: 13px; font-weight: 600; color: #334155;">${row.label}</span>
+                        </div>
+                        <!-- Mobile-only cost display (hidden on desktop via CSS) -->
+                        <div class="cost-pair mobile-costs">
+                            <div class="val-text usd-label" style="color:#cbd5e1; font-size:12px;">—</div>
+                            <div class="val-text inr-label" style="color:#cbd5e1; font-size:12px;">—</div>
+                        </div>
                     </div>
-                    <div style="padding-right: 12px;">
+
+                    <!-- Provider select -->
+                    <div style="padding-right: 12px;" class="select-col">
                         <select onchange="calculate()">
                             <option value="">— select —</option>
                             ${optionsHtml}
                         </select>
                     </div>
-                    <div style="padding-right: 12px; display: flex; gap: 8px;">
+
+                    <!-- Usage inputs -->
+                    <div class="usage-row" style="padding-right: 12px;">
                         <div class="input-group" style="flex: 1;">
                             <div class="input-label">${row.inputLabel}</div>
                             <input type="number" class="val1" value="${getDefaultVal(row.type)}" oninput="calculate()">
@@ -297,13 +380,54 @@ const PRICING = [
                             </div>
                         ` : ''}
                     </div>
-                    <div class="val-text usd-label" style="color: #cbd5e1">—</div>
-                    <div class="val-text inr-label" style="color: #cbd5e1">—</div>
+
+                    <!-- Desktop-only cost columns -->
+                    <div class="val-text usd-label desktop-cost" style="color: #cbd5e1">—</div>
+                    <div class="val-text inr-label desktop-cost" style="color: #cbd5e1">—</div>
                 </div>
             `;
         });
+
         container.innerHTML = html;
+
+        // Re-wire total row for mobile
+        applyLayout();
         calculate();
+    }
+
+    function applyLayout() {
+        const mobile = isMobile();
+        const totalRow = document.getElementById('total-row-desktop');
+
+        // Show/hide cost columns
+        document.querySelectorAll('.desktop-cost').forEach(el => {
+            el.style.display = mobile ? 'none' : '';
+        });
+        document.querySelectorAll('.mobile-costs').forEach(el => {
+            el.style.display = mobile ? 'flex' : 'none';
+        });
+        document.querySelectorAll('.select-col').forEach(el => {
+            el.style.paddingRight = mobile ? '0' : '12px';
+        });
+
+        // Total row: swap layout
+        if (mobile) {
+            totalRow.style.display = 'flex';
+            totalRow.innerHTML = `
+                <span class="total-label">Total Cost</span>
+                <div class="total-costs">
+                    <div id="total-usd" class="total-text" style="color:#6366f1;">$0.0000</div>
+                    <div id="total-inr" class="total-text" style="color:#f59e0b;">₹0.00</div>
+                </div>
+            `;
+        } else {
+            totalRow.style.display = 'grid';
+            totalRow.innerHTML = `
+                <div style="grid-column: 1 / 4; font-size: 13px; font-weight: 700; color: #334155;">Total Cost</div>
+                <div id="total-usd" class="total-text" style="text-align: right; color: #6366f1;">$0.0000</div>
+                <div id="total-inr" class="total-text" style="text-align: right; color: #f59e0b;">₹0.00</div>
+            `;
+        }
     }
 
     function getDefaultVal(type) {
@@ -311,22 +435,21 @@ const PRICING = [
         return defaults[type] || 0;
     }
 
-    // Calculation (Updates only labels, never touches input elements)
     function calculate() {
         let totalUSD = 0;
         let totalINR = 0;
+        const mobile = isMobile();
 
         ROWS_CONFIG.forEach(row => {
             const rowEl = document.getElementById(`row-${row.type}`);
             const select = rowEl.querySelector('select');
             const v1 = parseFloat(rowEl.querySelector('.val1').value) || 0;
             const v2 = row.input2 ? (parseFloat(rowEl.querySelector('.val2').value) || 0) : 0;
-            
+
             const selectedIdx = select.value;
             const selection = selectedIdx !== "" ? allOptions[row.type][selectedIdx] : null;
 
-            let usd = 0;
-            let inr = 0;
+            let usd = 0, inr = 0;
 
             if (selection) {
                 const { entry, model, region, direction } = selection;
@@ -351,21 +474,32 @@ const PRICING = [
                 }
             }
 
-            // Update row labels only
-            const usdLabel = rowEl.querySelector('.usd-label');
-            const inrLabel = rowEl.querySelector('.inr-label');
-            usdLabel.innerText = fmtUSD(usd);
-            inrLabel.innerText = fmtINR(inr);
-            usdLabel.style.color = selection ? "#0f172a" : "#cbd5e1";
-            inrLabel.style.color = selection ? "#0f172a" : "#cbd5e1";
+            // Update all usd-label / inr-label elements in this row
+            rowEl.querySelectorAll('.usd-label').forEach(el => {
+                el.innerText = fmtUSD(usd);
+                el.style.color = selection ? "#0f172a" : "#cbd5e1";
+            });
+            rowEl.querySelectorAll('.inr-label').forEach(el => {
+                el.innerText = fmtINR(inr);
+                el.style.color = selection ? "#0f172a" : "#cbd5e1";
+            });
 
             totalUSD += usd;
             totalINR += inr;
         });
 
-        document.getElementById('total-usd').innerText = fmtUSD(totalUSD);
-        document.getElementById('total-inr').innerText = fmtINR(totalINR);
+        const usdEl = document.getElementById('total-usd');
+        const inrEl = document.getElementById('total-inr');
+        if (usdEl) usdEl.innerText = fmtUSD(totalUSD);
+        if (inrEl) inrEl.innerText = fmtINR(totalINR);
     }
+
+    // Re-apply layout on resize
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => { applyLayout(); calculate(); }, 100);
+    });
 
     init();
 </script>
