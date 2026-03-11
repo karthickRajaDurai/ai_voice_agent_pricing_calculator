@@ -1,507 +1,642 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Bot Cost Calculator</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            background: #f1f5f9; 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
-            display: flex; 
-            align-items: flex-start; 
-            justify-content: center; 
-            padding: 40px 16px;
-            min-height: 100vh;
-        }
-        .container { width: 100%; max-width: 860px; }
-        .header { margin-bottom: 28px; }
-        .header h1 { font-size: 22px; font-weight: 700; color: #0f172a; }
-        .header p { font-size: 13px; color: #94a3b8; margin-top: 4px; }
-        
-        .card { background: #fff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        
-        /* ── Desktop table layout ── */
-        .grid-row { 
-            display: grid; 
-            grid-template-columns: 100px 1.2fr 1.2fr 110px 110px; 
-            padding: 16px 20px; 
-            align-items: center; 
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .grid-header { 
-            background: #f8fafc; 
-            border-bottom: 1px solid #e2e8f0;
-            padding: 12px 20px;
-        }
-        .hd-text { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; }
-        
-        select, input {
-            width: 100%; padding: 8px 10px; border-radius: 8px;
-            border: 1.5px solid #e2e8f0; font-size: 12px; color: #334155;
-            background: #fff; outline: none; transition: border-color 0.2s;
-        }
-        select:focus, input:focus { border-color: #6366f1; }
-        
-        .input-group { display: flex; flex-direction: column; gap: 3px; }
-        .input-label { font-size: 10px; color: #94a3b8; }
-        
-        .val-text { text-align: right; font-size: 14px; font-weight: 600; }
-        .total-row { background: #f8fafc; border-bottom: none; }
-        .total-text { font-size: 16px; font-weight: 700; }
-        
-        .footer-note { font-size: 11px; color: #cbd5e1; text-align: center; margin-top: 16px; }
-        
-        /* Hide arrows in number input */
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Platform Cost Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0d0f14; --surface: #13161e; --surface2: #1a1e28;
+  --border: #252836; --border2: #2e3347; --text: #e8eaf0; --muted: #5a6070;
+  --accent: #5b7fff; --green: #3fcf8e; --amber: #fbbf24; --orange: #fb923c;
+  --purple: #a78bfa; --pink: #f472b6; --mono: 'DM Mono', monospace; --sans: 'Syne', sans-serif;
+}
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; padding: 40px 16px 80px; }
+.page-wrap { max-width: 980px; margin: 0 auto; }
 
-        /* ── Mobile card layout ── */
-        @media (max-width: 640px) {
-            body { padding: 20px 12px 40px; }
-            .header h1 { font-size: 18px; }
-            .header p { font-size: 12px; }
+/* Header */
+.header { margin-bottom: 32px; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.header-left h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.04em; color: #fff; }
+.header-left p { font-size: 12px; color: var(--muted); margin-top: 4px; font-family: var(--mono); }
+.global-settings { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 16px; }
+.global-settings label { font-size: 11px; color: var(--muted); font-family: var(--mono); white-space: nowrap; }
+.gs-input { width: 64px !important; background: var(--bg) !important; border: 1px solid var(--border2) !important; border-radius: 6px !important; padding: 5px 8px !important; color: var(--text) !important; font-family: var(--mono) !important; font-size: 13px !important; text-align: center !important; outline: none !important; }
+.gs-input:focus { border-color: var(--accent) !important; }
+.credit-eq { font-size: 11px; color: var(--muted); font-family: var(--mono); border-left: 1px solid var(--border); padding-left: 10px; }
 
-            /* Hide desktop table header */
-            .grid-header { display: none; }
+/* Voice pair wrapper */
+.voice-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
 
-            /* Each row becomes a stacked card */
-            .grid-row {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-                padding: 14px 16px;
-                border-bottom: 1px solid #f1f5f9;
-            }
+/* Section card */
+.section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 14px; }
+.section-header { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+.section-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.section-title { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.section-sub { font-size: 10px; color: var(--muted); font-family: var(--mono); margin-left: auto; }
 
-            /* Service label row: badge left, costs right */
-            .row-top {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-            }
+/* Table column layout: label | select | usage | USD | INR */
+.COLS { grid-template-columns: 72px 1fr 120px 76px 76px; }
 
-            .cost-pair {
-                display: flex;
-                gap: 12px;
-                align-items: baseline;
-            }
+.tbl-head { display: grid; padding: 6px 16px; border-bottom: 1px solid var(--border); }
+.tbl-head span { font-size: 9px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--mono); }
 
-            .val-text {
-                font-size: 13px;
-                text-align: right;
-            }
+/* Voice row */
+.voice-row { display: grid; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+.voice-row:hover { background: rgba(255,255,255,0.02); }
 
-            /* Usage inputs side by side */
-            .usage-row {
-                display: flex;
-                gap: 8px;
-            }
-            .usage-row .input-group {
-                flex: 1;
-            }
+.svc-label { display: flex; align-items: center; gap: 7px; }
+.svc-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.svc-name { font-size: 10px; font-weight: 600; font-family: var(--mono); }
 
-            /* Total row stays horizontal */
-            .total-row {
-                display: flex;
-                flex-direction: row;
-                align-items: center;
-                justify-content: space-between;
-                flex-wrap: wrap;
-                gap: 6px;
-                padding: 14px 16px;
-            }
-            .total-row .total-label {
-                font-size: 13px;
-                font-weight: 700;
-                color: #334155;
-            }
-            .total-costs {
-                display: flex;
-                gap: 14px;
-                align-items: baseline;
-            }
-            .total-text { font-size: 15px; }
+select, input[type="number"] {
+  background: var(--bg); border: 1px solid var(--border2); border-radius: 6px;
+  color: var(--text); font-family: var(--mono); font-size: 10px; outline: none;
+  padding: 6px 8px; width: 100%; transition: border-color 0.15s;
+}
+select:focus, input[type="number"]:focus { border-color: var(--accent); }
+select option { background: #1a1e28; }
 
-            select { font-size: 13px; padding: 9px 10px; }
-            input  { font-size: 13px; padding: 9px 10px; }
-        }
-    </style>
+.usage-wrap { display: flex; gap: 5px; padding: 0 8px; }
+.ug { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.ug label { font-size: 8px; color: var(--muted); font-family: var(--mono); }
+
+.cost-val { font-family: var(--mono); font-size: 11px; text-align: right; color: var(--muted); }
+.cost-val.active { color: var(--text); }
+
+/* Cloud server row */
+.server-row {
+  display: grid;
+  grid-template-columns: 72px 1fr 120px 76px 76px;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(99,102,241,0.04);
+  transition: background 0.15s;
+}
+.server-row:hover { background: rgba(99,102,241,0.07); }
+
+
+/* Subtotal footer */
+.subtotal-row {
+  display: grid;
+  align-items: center;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border2);
+  background: var(--surface2);
+}
+.subtotal-label { font-size: 10px; font-weight: 700; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; grid-column: 1 / 4; }
+.subtotal-val { font-family: var(--mono); font-size: 13px; font-weight: 700; text-align: right; }
+
+/* Action rows */
+.action-row {
+  display: grid;
+  grid-template-columns: 1fr 60px 104px 76px 96px 84px 84px;
+  align-items: center; padding: 9px 18px; border-bottom: 1px solid var(--border); transition: background 0.15s;
+}
+.action-row:last-child { border-bottom: none; }
+.action-row:hover { background: rgba(255,255,255,0.02); }
+.action-tbl-head { grid-template-columns: 1fr 60px 104px 76px 96px 84px 84px; }
+
+.action-dir-badge { font-size: 8px; font-family: var(--mono); text-align: center; border-radius: 4px; padding: 2px 5px; display: inline-block; }
+.field-col { display: flex; flex-direction: column; gap: 1px; padding: 0 5px; }
+.field-hint { font-size: 7px; font-family: var(--mono); color: var(--amber); opacity: 0.8; text-align: right; height: 9px; line-height: 9px; }
+.base-input, .markup-input { text-align: right; padding: 5px 6px !important; font-size: 10px !important; }
+.usage-input { padding: 5px 6px !important; font-size: 10px !important; }
+.auto-field { border-color: rgba(251,191,36,0.45) !important; background: rgba(251,191,36,0.05) !important; }
+.auto-field:focus { border-color: var(--amber) !important; }
+
+/* Bottom summary */
+.summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 6px; }
+.sum-card { background: var(--surface); border: 1px solid var(--border); border-radius: 13px; padding: 16px 18px; }
+.sum-card .lbl { font-size: 9px; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 7px; }
+.sum-card .amt { font-size: 18px; font-weight: 800; letter-spacing: -0.03em; font-family: var(--mono); }
+.sum-card .amt-sub { font-size: 10px; font-family: var(--mono); margin-top: 3px; }
+.sum-card.total { background: linear-gradient(135deg, #1e2435 0%, #16192a 100%); border-color: var(--accent); }
+
+input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+input[type=number] { -moz-appearance: textfield; }
+
+@media (max-width: 740px) {
+  .voice-pair { grid-template-columns: 1fr; }
+  .summary { grid-template-columns: 1fr 1fr; }
+  .action-tbl-head { display: none; }
+  .action-row { grid-template-columns: 1fr 70px; gap: 5px; }
+  .action-row > *:nth-child(n+3):nth-child(-n+5) { display: none; }
+}
+</style>
 </head>
 <body>
+<div class="page-wrap">
 
-<div class="container">
-    <div class="header">
-        <h1>Voice Bot Cost Calculator</h1>
-        <p>Select a provider & model for each service, enter usage, see cost instantly</p>
+  <div class="header">
+    <div class="header-left">
+      <h1>AI Platform Cost Calculator</h1>
+      <p>Voice stack · Agent actions · Credits · INR · USD</p>
+    </div>
+    <div class="global-settings">
+      <label>USD → INR</label>
+      <input type="number" id="usd-rate" class="gs-input" value="91" oninput="recalc()">
+      <div class="credit-eq">1 credit = $0.0001</div>
+    </div>
+  </div>
+
+  <!-- VOICE STACK: side-by-side Inbound + Outbound -->
+  <div class="voice-pair">
+
+    <!-- INBOUND -->
+    <div class="section" id="sec-inbound">
+      <div class="section-header">
+        <div class="section-dot" style="background:#fbbf24;"></div>
+        <span class="section-title" style="color:#fbbf24;">Voice Stack · Inbound</span>
+        <span class="section-sub">Tel · STT · LLM · TTS · Server</span>
+      </div>
+      <div class="tbl-head COLS">
+        <span>Service</span>
+        <span>Provider · Model</span>
+        <span style="padding-left:8px;">Usage</span>
+        <span style="text-align:right;">USD</span>
+        <span style="text-align:right;">INR</span>
+      </div>
+      <div id="inbound-rows"></div>
+      <!-- Cloud Server — Inbound -->
+      <div class="server-row" id="server-in">
+        <div class="svc-label">
+          <div class="svc-dot" style="background:#6366f1"></div>
+          <span class="svc-name" style="color:#6366f1">Server</span>
+        </div>
+        <div style="grid-column:2/4; padding-right:8px;">
+          <div class="ug">
+            <label>Cost / min (USD)</label>
+            <input type="number" id="srv-in-rate" value="0.011" min="0" step="0.0001" oninput="recalc()">
+          </div>
+        </div>
+        <div class="cost-val active" id="srv-in-usd" style="color:#6366f1;">—</div>
+        <div class="cost-val active" id="srv-in-inr" style="color:#6366f1;">—</div>
+      </div>
+      <div class="subtotal-row COLS" id="subtotal-inbound">
+        <span class="subtotal-label">Inbound Total</span>
+        <div class="subtotal-val" id="sub-in-usd" style="color:#fbbf24;">—</div>
+        <div class="subtotal-val" id="sub-in-inr" style="color:#fbbf24;">—</div>
+      </div>
     </div>
 
-    <div class="card">
-        <div class="grid-row grid-header">
-            <div class="hd-text">Service</div>
-            <div class="hd-text">Provider & Model</div>
-            <div class="hd-text">Usage</div>
-            <div class="hd-text" style="text-align: right;">USD</div>
-            <div class="hd-text" style="text-align: right;">INR</div>
+    <!-- OUTBOUND -->
+    <div class="section" id="sec-outbound">
+      <div class="section-header">
+        <div class="section-dot" style="background:#fb923c;"></div>
+        <span class="section-title" style="color:#fb923c;">Voice Stack · Outbound</span>
+        <span class="section-sub">Tel · STT · LLM · TTS · Server</span>
+      </div>
+      <div class="tbl-head COLS">
+        <span>Service</span>
+        <span>Provider · Model</span>
+        <span style="padding-left:8px;">Usage</span>
+        <span style="text-align:right;">USD</span>
+        <span style="text-align:right;">INR</span>
+      </div>
+      <div id="outbound-rows"></div>
+      <!-- Cloud Server — Outbound -->
+      <div class="server-row" id="server-out">
+        <div class="svc-label">
+          <div class="svc-dot" style="background:#6366f1"></div>
+          <span class="svc-name" style="color:#6366f1">Server</span>
         </div>
-
-        <div id="rows-container"></div>
-
-        <!-- Desktop total row -->
-        <div class="grid-row total-row" id="total-row-desktop" style="display: grid;">
-            <div style="grid-column: 1 / 4; font-size: 13px; font-weight: 700; color: #334155;">Total Cost</div>
-            <div id="total-usd" class="total-text" style="text-align: right; color: #6366f1;">$0.0000</div>
-            <div id="total-inr" class="total-text" style="text-align: right; color: #f59e0b;">₹0.00</div>
+        <div style="grid-column:2/4; padding-right:8px;">
+          <div class="ug">
+            <label>Cost / min (USD)</label>
+            <input type="number" id="srv-out-rate" value="0.011" min="0" step="0.0001" oninput="recalc()">
+          </div>
         </div>
+        <div class="cost-val active" id="srv-out-usd" style="color:#6366f1;">—</div>
+        <div class="cost-val active" id="srv-out-inr" style="color:#6366f1;">—</div>
+      </div>
+      <div class="subtotal-row COLS" id="subtotal-outbound">
+        <span class="subtotal-label">Outbound Total</span>
+        <div class="subtotal-val" id="sub-out-usd" style="color:#fb923c;">—</div>
+        <div class="subtotal-val" id="sub-out-inr" style="color:#fb923c;">—</div>
+      </div>
     </div>
 
-    <p class="footer-note">
-        INR conversion at ₹91 / USD · Exotel billed in INR (₹0.30 inbound / ₹0.60 outbound per 60s pulse)
-    </p>
-</div>
+  </div><!-- /voice-pair -->
 
+  <!-- AGENT ACTIONS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-dot" style="background:#3fcf8e;"></div>
+      <span class="section-title" style="color:#3fcf8e;">Agent Actions</span>
+      <span class="section-sub">All rates &amp; markup editable</span>
+    </div>
+    <div class="tbl-head action-tbl-head">
+      <span>Service</span>
+      <span style="text-align:center;">Dir</span>
+      <span style="text-align:right;">Base / unit (USD)</span>
+      <span style="text-align:right;">Markup %</span>
+      <span style="text-align:right;">Usage</span>
+      <span style="text-align:right;">USD</span>
+      <span style="text-align:right;">INR</span>
+    </div>
+    <div id="action-rows"></div>
+    <!-- Agent Actions — Server -->
+    <div class="server-row" id="server-actions" style="border-top:1px solid var(--border2);">
+      <div class="svc-label">
+        <div class="svc-dot" style="background:#6366f1"></div>
+        <span class="svc-name" style="color:#6366f1">Server</span>
+      </div>
+      <div style="grid-column:2/4; padding-right:8px;">
+        <div class="ug">
+          <label>Cost / min (USD)</label>
+          <input type="number" id="srv-act-rate" value="0.011" min="0" step="0.0001" oninput="recalc()">
+        </div>
+      </div>
+      <div class="cost-val active" id="srv-act-usd" style="color:#6366f1;">—</div>
+      <div class="cost-val active" id="srv-act-inr" style="color:#6366f1;">—</div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary">
+    <div class="sum-card">
+      <div class="lbl">Inbound Stack</div>
+      <div class="amt" id="sum-inbound" style="color:#fbbf24;">—</div>
+      <div class="amt-sub" id="sum-inbound-inr" style="color:#fbbf24;">—</div>
+    </div>
+    <div class="sum-card">
+      <div class="lbl">Outbound Stack</div>
+      <div class="amt" id="sum-outbound" style="color:#fb923c;">—</div>
+      <div class="amt-sub" id="sum-outbound-inr" style="color:#fb923c;">—</div>
+    </div>
+    <div class="sum-card">
+      <div class="lbl">Agent Actions</div>
+      <div class="amt" id="sum-actions" style="color:#3fcf8e;">—</div>
+      <div class="amt-sub" id="sum-actions-inr" style="color:#3fcf8e;">—</div>
+    </div>
+    <div class="sum-card">
+      <div class="lbl">Total Credits</div>
+      <div class="amt" id="sum-credits" style="color:#fbbf24;">0</div>
+    </div>
+    <div class="sum-card total">
+      <div class="lbl">Grand Total</div>
+      <div class="amt" id="sum-total" style="color:#fff;">—</div>
+      <div class="amt-sub" id="sum-total-inr" style="color:#5b7fff;">—</div>
+    </div>
+  </div>
+
+</div><!-- /page-wrap -->
 <script>
-const PRICING = [
-    // ── LLM ──────────────────────────────────────────────────────────────────
-    { provider:"openai", type:"llm", billing:"per_token", unit:"1_million_tokens", models:[
-        {model:"gpt-4o",         input:2.50,  output:10.00},
-        {model:"gpt-4o-mini",    input:0.15,  output:0.60},
-        {model:"gpt-4.1",        input:2.00,  output:8.00},
-        {model:"gpt-4.1-mini",   input:0.40,  output:1.60},
-        {model:"gpt-4.1-nano",   input:0.10,  output:0.40}
+// ── PRICING DATA ──────────────────────────────────────────────────────────────
+const PRICING = {
+  llm: [
+    { provider:"openai",    models:[
+      {model:"gpt-4o",         input:2.50,  output:10.00},
+      {model:"gpt-4o-mini",    input:0.15,  output:0.60},
+      {model:"gpt-4.1",        input:2.00,  output:8.00},
+      {model:"gpt-4.1-mini",   input:0.40,  output:1.60},
+      {model:"gpt-4.1-nano",   input:0.10,  output:0.40}
     ]},
-    { provider:"anthropic", type:"llm", billing:"per_token", unit:"1_million_tokens", models:[
-        {model:"claude-opus-4",    input:15.00, output:75.00},
-        {model:"claude-sonnet-4",  input:3.00,  output:15.00},
-        {model:"claude-haiku-3.5", input:0.80,  output:4.00},
-        {model:"claude-haiku-3",   input:0.25,  output:1.25}
+    { provider:"anthropic", models:[
+      {model:"claude-opus-4",    input:15.00, output:75.00},
+      {model:"claude-sonnet-4",  input:3.00,  output:15.00},
+      {model:"claude-haiku-3.5", input:0.80,  output:4.00},
+      {model:"claude-haiku-3",   input:0.25,  output:1.25}
     ]},
-    { provider:"google", type:"llm", billing:"per_token", unit:"1_million_tokens", models:[
-        {model:"gemini-2.5-pro",   input:1.25,  output:10.00},
-        {model:"gemini-2.5-flash", input:0.30,  output:2.50},
-        {model:"gemini-2.0-flash", input:0.10,  output:0.40},
-        {model:"gemini-1.5-pro",   input:1.25,  output:5.00},
-        {model:"gemini-1.5-flash", input:0.075, output:0.30}
+    { provider:"google", models:[
+      {model:"gemini-2.5-pro",   input:1.25,  output:10.00},
+      {model:"gemini-2.5-flash", input:0.30,  output:2.50},
+      {model:"gemini-2.0-flash", input:0.10,  output:0.40},
+      {model:"gemini-1.5-pro",   input:1.25,  output:5.00},
+      {model:"gemini-1.5-flash", input:0.075, output:0.30}
     ]},
-    { provider:"groq", type:"llm", billing:"per_token", unit:"1_million_tokens", models:[
-        {model:"llama-4-scout-17b",    input:0.11, output:0.34},
-        {model:"llama-4-maverick-17b", input:0.50, output:0.77},
-        {model:"llama-3.3-70b",        input:0.59, output:0.79},
-        {model:"llama-3.1-8b-instant", input:0.05, output:0.08}
+    { provider:"groq", models:[
+      {model:"llama-4-scout-17b",    input:0.11, output:0.34},
+      {model:"llama-4-maverick-17b", input:0.50, output:0.77},
+      {model:"llama-3.3-70b",        input:0.59, output:0.79},
+      {model:"llama-3.1-8b-instant", input:0.05, output:0.08}
     ]},
-    { provider:"mistral", type:"llm", billing:"per_token", unit:"1_million_tokens", models:[
-        {model:"mistral-large-2", input:2.00, output:6.00},
-        {model:"mistral-small-3", input:0.10, output:0.30}
-    ]},
-    { provider:"deepseek", type:"llm", billing:"per_token", unit:"1_million_tokens", models:[
-        {model:"deepseek-r1", input:0.55, output:2.19},
-        {model:"deepseek-v3", input:0.27, output:1.10}
-    ]},
-    { provider:"sarvam", type:"llm", billing:"per_token", unit:"1_million_tokens", models:[
-        {model:"sarvam-m", input:0.00, output:0.00}
-    ]},
+    { provider:"mistral",  models:[{model:"mistral-large-2", input:2.00, output:6.00},{model:"mistral-small-3", input:0.10, output:0.30}]},
+    { provider:"deepseek", models:[{model:"deepseek-r1", input:0.55, output:2.19},{model:"deepseek-v3", input:0.27, output:1.10}]},
+    { provider:"sarvam",   models:[{model:"sarvam-m", input:0.00, output:0.00}]},
+  ],
+  stt: [
+    { provider:"deepgram",     models:[{model:"nova-3", cost:0.0077},{model:"nova-3-multilingual", cost:0.0092},{model:"nova-2", cost:0.0043}]},
+    { provider:"assemblyai",   models:[{model:"universal-2", cost:0.0025}]},
+    { provider:"openai",       models:[{model:"whisper-1", cost:0.006},{model:"gpt-4o-transcribe", cost:0.006}]},
+    { provider:"gladia",       models:[{model:"solaria-async", cost:0.005},{model:"solaria-realtime", cost:0.006}]},
+    { provider:"speechmatics", models:[{model:"ursa-2-batch", cost:0.005},{model:"ursa-2-realtime", cost:0.010}]},
+    { provider:"azure",        models:[{model:"standard-realtime", cost:0.0167},{model:"standard-batch", cost:0.006}]},
+    { provider:"google",       models:[{model:"chirp-standard", cost:0.016},{model:"chirp-3-hd", cost:0.024}]},
+    { provider:"sarvam",       models:[{model:"saarika-v2", cost:0.0055},{model:"saarika-v2-diarization", cost:0.0082},{model:"saarika-v2-translate", cost:0.0055}]},
+    { provider:"smallest",     models:[{model:"pulse", cost:0.005},{model:"pulse-realtime", cost:0.008}]},
+  ],
+  tts: [
+    { provider:"cartesia",   models:[{model:"sonic-2", cost:0.040},{model:"sonic-3", cost:0.040},{model:"sonic-turbo", cost:0.040}]},
+    { provider:"elevenlabs", models:[{model:"flash-v2.5", cost:0.08},{model:"turbo-v2.5", cost:0.08},{model:"multilingual-v2", cost:0.15}]},
+    { provider:"openai",     models:[{model:"tts-1", cost:0.015},{model:"tts-1-hd", cost:0.030}]},
+    { provider:"deepgram",   models:[{model:"aura-2", cost:0.030}]},
+    { provider:"google",     models:[{model:"standard", cost:0.004},{model:"wavenet", cost:0.016},{model:"neural2", cost:0.016},{model:"gemini-2.5-flash-tts", cost:0.0005},{model:"gemini-2.5-pro-tts", cost:0.001}]},
+    { provider:"azure",      models:[{model:"neural-standard", cost:0.015},{model:"neural-hd", cost:0.030}]},
+    { provider:"lmnt",       models:[{model:"aurora", cost:0.010},{model:"blizzard", cost:0.010}]},
+    { provider:"rime",       models:[{model:"mist", cost:0.005},{model:"arcana", cost:0.010}]},
+    { provider:"aws",        models:[{model:"polly-standard", cost:0.004},{model:"polly-neural", cost:0.016},{model:"polly-long-form", cost:0.100}]},
+    { provider:"sarvam",     models:[{model:"bulbul-v2", cost:0.0165},{model:"bulbul-v3-beta", cost:0.033}]},
+    { provider:"smallest",   models:[{model:"lightning-v2", cost:0.200},{model:"lightning-v3.1", cost:0.025}]},
+  ],
+  'tel-in': [
+    { provider:"twilio", regions:[{region:"USA", rtype:"local", rate:0.0085},{region:"USA", rtype:"tollfree", rate:0.0220},{region:"India", rtype:"local", rate:0.0185}]},
+    { provider:"plivo",  regions:[{region:"USA", rtype:"local", rate:0.0050},{region:"USA", rtype:"tollfree", rate:0.0120},{region:"India", rtype:"local", rate:0.0330}]},
+    { provider:"exotel", currency:"INR", regions:[{region:"India", rtype:"inbound", rate:0.30}]},
+  ],
+  'tel-out': [
+    { provider:"twilio", regions:[{region:"USA", rtype:"local", rate:0.0140},{region:"USA", rtype:"tollfree", rate:0.0140},{region:"India", rtype:"local", rate:0.0497}]},
+    { provider:"plivo",  regions:[{region:"USA", rtype:"local", rate:0.0085},{region:"USA", rtype:"tollfree", rate:0.0085},{region:"India", rtype:"local", rate:0.0088}]},
+    { provider:"exotel", currency:"INR", regions:[{region:"India", rtype:"outbound", rate:0.75}]},
+  ],
+};
 
-    // ── STT ──────────────────────────────────────────────────────────────────
-    { provider:"deepgram", type:"stt", billing:"per_minute", unit:"1_minute", currency:"USD", models:[
-        {model:"nova-3",              cost:0.0077},
-        {model:"nova-3-multilingual", cost:0.0092},
-        {model:"nova-2",              cost:0.0043}
-    ]},
-    { provider:"assemblyai", type:"stt", billing:"per_minute", unit:"1_minute", currency:"USD", models:[
-        {model:"universal-2", cost:0.0025}
-    ]},
-    { provider:"openai", type:"stt", billing:"per_minute", unit:"1_minute", currency:"USD", models:[
-        {model:"whisper-1",         cost:0.006},
-        {model:"gpt-4o-transcribe", cost:0.006}
-    ]},
-    { provider:"gladia", type:"stt", billing:"per_minute", unit:"1_minute", currency:"USD", models:[
-        {model:"solaria-async",    cost:0.005},
-        {model:"solaria-realtime", cost:0.006}
-    ]},
-    { provider:"speechmatics", type:"stt", billing:"per_minute", unit:"1_minute", currency:"USD", models:[
-        {model:"ursa-2-batch",    cost:0.005},
-        {model:"ursa-2-realtime", cost:0.010}
-    ]},
-    { provider:"azure", type:"stt", billing:"per_minute", unit:"1_minute", currency:"USD", models:[
-        {model:"standard-realtime", cost:0.0167},
-        {model:"standard-batch",    cost:0.006}
-    ]},
-    { provider:"google", type:"stt", billing:"per_minute", unit:"1_minute", currency:"USD", models:[
-        {model:"chirp-standard", cost:0.016},
-        {model:"chirp-3-hd",     cost:0.024}
-    ]},
-    { provider:"sarvam", type:"stt", billing:"per_minute", unit:"1_minute", currency:"USD", models:[
-        {model:"saarika-v2",              cost:0.0055},
-        {model:"saarika-v2-diarization",  cost:0.0082},
-        {model:"saarika-v2-translate",    cost:0.0055}
-    ]},
-    { provider:"smallest", type:"stt", billing:"per_minute", unit:"1_minute", currency:"USD", models:[
-        {model:"pulse",          cost:0.005},
-        {model:"pulse-realtime", cost:0.008}
-    ]},
-
-    // ── TTS ──────────────────────────────────────────────────────────────────
-    { provider:"cartesia", type:"tts", billing:"per_character", unit:"1000_characters", currency:"USD", models:[
-        {model:"sonic-2",     cost:0.040},
-        {model:"sonic-3",     cost:0.040},
-        {model:"sonic-turbo", cost:0.040}
-    ]},
-    { provider:"elevenlabs", type:"tts", billing:"per_character", unit:"1000_characters", currency:"USD", models:[
-        {model:"flash-v2.5",       cost:0.08},
-        {model:"turbo-v2.5",       cost:0.08},
-        {model:"multilingual-v2",  cost:0.15}
-    ]},
-    { provider:"openai", type:"tts", billing:"per_character", unit:"1000_characters", currency:"USD", models:[
-        {model:"tts-1",    cost:0.015},
-        {model:"tts-1-hd", cost:0.030}
-    ]},
-    { provider:"deepgram", type:"tts", billing:"per_character", unit:"1000_characters", currency:"USD", models:[
-        {model:"aura-2", cost:0.030}
-    ]},
-    { provider:"google", type:"tts", billing:"per_character", unit:"1000_characters", currency:"USD", models:[
-        {model:"standard",            cost:0.004},
-        {model:"wavenet",             cost:0.016},
-        {model:"neural2",             cost:0.016},
-        {model:"gemini-2.5-flash-tts",cost:0.0005},
-        {model:"gemini-2.5-pro-tts",  cost:0.001}
-    ]},
-    { provider:"azure", type:"tts", billing:"per_character", unit:"1000_characters", currency:"USD", models:[
-        {model:"neural-standard", cost:0.015},
-        {model:"neural-hd",       cost:0.030}
-    ]},
-    { provider:"lmnt", type:"tts", billing:"per_character", unit:"1000_characters", currency:"USD", models:[
-        {model:"aurora",   cost:0.010},
-        {model:"blizzard", cost:0.010}
-    ]},
-    { provider:"rime", type:"tts", billing:"per_character", unit:"1000_characters", currency:"USD", models:[
-        {model:"mist",   cost:0.005},
-        {model:"arcana", cost:0.010}
-    ]},
-    { provider:"aws", type:"tts", billing:"per_character", unit:"1000_characters", currency:"USD", models:[
-        {model:"polly-standard",  cost:0.004},
-        {model:"polly-neural",    cost:0.016},
-        {model:"polly-long-form", cost:0.100}
-    ]},
-    { provider:"sarvam", type:"tts", billing:"per_character", unit:"1000_characters", currency:"USD", models:[
-        {model:"bulbul-v2",      cost:0.0165},
-        {model:"bulbul-v3-beta", cost:0.033}
-    ]},
-    { provider:"smallest", type:"tts", billing:"per_character", unit:"1000_characters", currency:"USD", models:[
-        {model:"lightning-v2",  cost:0.200},
-        {model:"lightning-v3.1",cost:0.025}
-    ]},
-
-    // ── TELEPHONY ─────────────────────────────────────────────────────────────
-    { provider:"twilio", type:"telephony", billing:"per_minute", unit:"1_minute", currency:"USD", regions:[
-        {region:"usa",   type:"local",      inbound:0.0085, outbound:0.0140},
-        {region:"usa",   type:"tollfree",   inbound:0.0220, outbound:0.0140},
-        {region:"india", type:"local",      inbound:0.0185, outbound:0.0497},
-    ]},
-    { provider:"plivo", type:"telephony", billing:"per_minute", unit:"1_minute", currency:"USD", regions:[
-        {region:"usa",   type:"local",    inbound:0.0050, outbound:0.0085},
-        {region:"usa",   type:"tollfree", inbound:0.0120, outbound:0.0085},
-        {region:"india", type:"local",    inbound:0.0330, outbound:0.0088}
-    ]},
-    { provider:"exotel", type:"telephony", billing:"per_pulse", unit:"60_second_pulse_rounded_up", currency:"INR", regions:[
-        {region:"india", type:"inbound",  inbound:0.30, outbound:0.75}
-    ]},
+// ── VOICE SECTION CONFIG ──────────────────────────────────────────────────────
+// Each direction (inbound / outbound) gets 4 rows: Tel, STT, LLM, TTS
+const DIRECTIONS = [
+  {
+    dir: 'inbound',
+    containerId: 'inbound-rows',
+    autoId: 'vtel-in',
+    actionAutoFrom: 'vtel-in',
+    rows: [
+      { id:'vtel-in',  type:'tel-in',  label:'Telephony', color:'#fbbf24', inputLabel:'Minutes',    input2:false, defaultOptIdx:6 },
+      { id:'vstt-in',  type:'stt',     label:'STT',       color:'#3fcf8e', inputLabel:'Minutes',    input2:false, defaultOptIdx:0 },
+      { id:'vllm-in',  type:'llm',     label:'LLM',       color:'#a78bfa', inputLabel:'In Tokens',  input2:true,  input2Label:'Out Tokens', defaultOptIdx:1 },
+      { id:'vtts-in',  type:'tts',     label:'TTS',       color:'#f472b6', inputLabel:'Characters', input2:false, defaultOptIdx:0 },
+    ]
+  },
+  {
+    dir: 'outbound',
+    containerId: 'outbound-rows',
+    autoId: 'vtel-out',
+    actionAutoFrom: 'vtel-out',
+    rows: [
+      { id:'vtel-out', type:'tel-out', label:'Telephony', color:'#fb923c', inputLabel:'Minutes',    input2:false, defaultOptIdx:6 },
+      { id:'vstt-out', type:'stt',     label:'STT',       color:'#3fcf8e', inputLabel:'Minutes',    input2:false, defaultOptIdx:0 },
+      { id:'vllm-out', type:'llm',     label:'LLM',       color:'#a78bfa', inputLabel:'In Tokens',  input2:true,  input2Label:'Out Tokens', defaultOptIdx:1 },
+      { id:'vtts-out', type:'tts',     label:'TTS',       color:'#f472b6', inputLabel:'Characters', input2:false, defaultOptIdx:0 },
+    ]
+  }
 ];
 
-    const USD_TO_INR = 91;
-    const ROWS_CONFIG = [
-        { type: "telephony", label: "Telephony", color: "#f59e0b", inputLabel: "Minutes", input2: false },
-        { type: "stt",       label: "STT",       color: "#10b981", inputLabel: "Minutes", input2: false },
-        { type: "llm",       label: "LLM",       color: "#6366f1", inputLabel: "Input Tokens", input2: true, input2Label: "Output Tokens" },
-        { type: "tts",       label: "TTS",       color: "#f43f5e", inputLabel: "Characters", input2: false },
-    ];
+const ALL_VOICE_ROWS = DIRECTIONS.flatMap(d => d.rows);
 
-    const allOptions = {};
-    ROWS_CONFIG.forEach(r => allOptions[r.type] = getOptions(r.type));
+// ── ACTIONS CONFIG ────────────────────────────────────────────────────────────
+const ACTIONS = [
+  { id:'voice-in',  label:'Voice Call',     dir:'inbound',  dirColor:'#fbbf24', unit:'min',    base:0.0612, markup:40, autoFrom:'vtel-in'  },
+  { id:'voice-out', label:'Voice Call',     dir:'outbound', dirColor:'#fb923c', unit:'min',    base:0.0650, markup:40, autoFrom:'vtel-out' },
+  { id:'llm-in',    label:'LLM Tokens',     dir:'input',    dirColor:'#a78bfa', unit:'1M tok', base:2.0000, markup:30, unitsValue:1000000 },
+  { id:'llm-out',   label:'LLM Tokens',     dir:'output',   dirColor:'#a78bfa', unit:'1M tok', base:8.0000, markup:30, unitsValue:1000000 },
+  { id:'calendar',  label:'Calendar',       dir:'—',        dirColor:'#5a6070', unit:'count',  base:0.0001, markup:30 },
+  { id:'send-mail', label:'Send Mail',      dir:'—',        dirColor:'#5a6070', unit:'count',  base:0.0001, markup:20 },
+  { id:'recv-mail', label:'Receive Mail',   dir:'—',        dirColor:'#5a6070', unit:'count',  base:0.0005, markup:30 },
+  { id:'gen-excel', label:'Generate Excel', dir:'—',        dirColor:'#5a6070', unit:'count',  base:0.0007, markup:30 },
+  { id:'wa-in',     label:'WhatsApp',       dir:'inbound',  dirColor:'#3fcf8e', unit:'count',  base:0.0010, markup:30 },
+  { id:'wa-out',    label:'WhatsApp',       dir:'outbound', dirColor:'#fb923c', unit:'count',  base:0.0015, markup:30 },
+  { id:'msg-in',    label:'Message',        dir:'inbound',  dirColor:'#3fcf8e', unit:'count',  base:0.0010, markup:30 },
+  { id:'msg-out',   label:'Message',        dir:'outbound', dirColor:'#fb923c', unit:'count',  base:0.0015, markup:30 },
+];
 
-    function getOptions(type) {
-        const options = [];
-        PRICING.filter(p => p.type === type).forEach(entry => {
-            if (entry.models) entry.models.forEach(m => options.push({ label: `${entry.provider} · ${m.model}`, entry, model: m }));
-            if (entry.regions) entry.regions.forEach(r => {
-                options.push({ label: `${entry.provider} · ${r.region} (${r.type}) inbound`,  entry, region: r, direction: "inbound" });
-                options.push({ label: `${entry.provider} · ${r.region} (${r.type}) outbound`, entry, region: r, direction: "outbound" });
-            });
-        });
-        return options;
+const CREDIT_UNIT = 0.0001;
+
+// ── BUILD OPTION LISTS ────────────────────────────────────────────────────────
+function buildOptions(type) {
+  const opts = [];
+  (PRICING[type] || []).forEach(entry => {
+    if (entry.models)  entry.models.forEach(m => opts.push({ rowType:type, label:`${entry.provider} · ${m.model}`, entry, model:m }));
+    if (entry.regions) entry.regions.forEach(r => opts.push({ rowType:type, label:`${entry.provider} · ${r.region} (${r.rtype})`, entry, region:r }));
+  });
+  return opts;
+}
+const allOpts = {};
+ALL_VOICE_ROWS.forEach(r => { if (!allOpts[r.type]) allOpts[r.type] = buildOptions(r.type); });
+
+// ── RENDER VOICE SECTION ──────────────────────────────────────────────────────
+function renderVoice() {
+  DIRECTIONS.forEach(dir => {
+    const container = document.getElementById(dir.containerId);
+    let html = '';
+    dir.rows.forEach(row => {
+      const opts = allOpts[row.type];
+      const optHtml = opts.map((o,i) => `<option value="${i}">${o.label}</option>`).join('');
+      const def1 = (row.type === 'llm') ? 10000 : (row.type === 'tts') ? 1000 : 1;
+      html += `
+      <div class="voice-row COLS" id="${row.id}">
+        <div class="svc-label">
+          <div class="svc-dot" style="background:${row.color}"></div>
+          <span class="svc-name" style="color:${row.color}">${row.label}</span>
+        </div>
+        <div style="padding-right:8px">
+          <select onchange="recalc()">
+            <option value="">— select —</option>
+            ${optHtml}
+          </select>
+        </div>
+        <div class="usage-wrap">
+          <div class="ug">
+            <label>${row.inputLabel}</label>
+            <input type="number" class="v1" value="${def1}" oninput="recalc()">
+          </div>
+          ${row.input2 ? `<div class="ug"><label>${row.input2Label}</label><input type="number" class="v2" value="2000" oninput="recalc()"></div>` : ''}
+        </div>
+        <div class="cost-val usd">—</div>
+        <div class="cost-val inr">—</div>
+      </div>`;
+    });
+    container.innerHTML = html;
+    // Pre-select defaults
+    dir.rows.forEach(row => {
+      if (row.defaultOptIdx >= 0)
+        document.querySelector(`#${row.id} select`).value = row.defaultOptIdx;
+    });
+  });
+}
+
+// ── RENDER ACTIONS ────────────────────────────────────────────────────────────
+function renderActions() {
+  const container = document.getElementById('action-rows');
+  let html = '';
+  ACTIONS.forEach(a => {
+    // const defaultUsage = (a.unit === 'min') ? 10 : (a.unit === '1M tok') ? 10 : 100;
+    const defaultUsage = (a.unit === 'min') ? 3 : (a.unit === '1M tok') ? (a.dir==="input"? 30000:2500) : 10;
+    const isAuto = !!a.autoFrom;
+    html += `
+    <div class="action-row" id="arow-${a.id}">
+      <div style="display:flex;align-items:center;gap:5px;">
+        <span style="font-size:11px;font-family:'DM Mono',monospace;">${a.label}</span>
+        <span style="font-size:8px;color:var(--muted);font-family:'DM Mono',monospace;">(${a.unit})</span>
+      </div>
+      <div style="text-align:center;">
+        <span class="action-dir-badge" style="color:${a.dirColor};background:${a.dirColor}18;">${a.dir}</span>
+      </div>
+      <div class="field-col">
+        <span class="field-hint">${isAuto ? '↑ auto from stack' : ''}</span>
+        <input type="number" class="base-input ${isAuto ? 'auto-field' : ''}" value="${a.base}" step="0.0001" min="0" oninput="recalc()">
+      </div>
+      <div class="field-col">
+        <span class="field-hint">&nbsp;</span>
+        <input type="number" class="markup-input" value="${a.markup}" step="1" min="0" oninput="recalc()">
+      </div>
+      <div style="padding:0 5px">
+        <input type="number" class="usage-input" value="${defaultUsage}" min="0" oninput="recalc()">
+      </div>
+      <div class="cost-val usd" style="text-align:right">—</div>
+      <div class="cost-val inr" style="text-align:right">—</div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+// ── FORMATTERS ────────────────────────────────────────────────────────────────
+const fU = v => v === 0 ? '—' : `$${v < 0.0001 ? v.toExponential(2) : v.toFixed(4)}`;
+const fI = v => v === 0 ? '—' : `₹${v.toFixed(2)}`;
+
+// ── CALC SERVER COST for a voice direction ───────────────────────────────────
+function calcServerUSD(prefix, rate) {
+  const perMin = parseFloat(document.getElementById('srv-' + prefix + '-rate').value) || 0;
+  document.getElementById('srv-' + prefix + '-usd').textContent = fU(perMin);
+  document.getElementById('srv-' + prefix + '-inr').textContent = fI(perMin * rate);
+  return { perMin };
+}
+
+// ── CALC SINGLE VOICE ROW ─────────────────────────────────────────────────────
+function calcVoiceRow(row, rate) {
+  const el  = document.getElementById(row.id);
+  const idx = el.querySelector('select').value;
+  const sel = (idx !== '') ? allOpts[row.type][parseInt(idx)] : null;
+  const v1  = parseFloat(el.querySelector('.v1').value) || 0;
+  const v2El = el.querySelector('.v2');
+  const v2  = v2El ? (parseFloat(v2El.value) || 0) : 0;
+  let usd = 0, perUnit = null;
+
+  if (sel) {
+    const { rowType, entry, model, region } = sel;
+    if (rowType === 'llm') {
+      usd = (v1 / 1e6) * model.input + (v2 / 1e6) * model.output;
+    } else if (rowType === 'stt') {
+      usd = v1 * model.cost;
+    } else if (rowType === 'tts') {
+      usd = (v1 / 1000) * model.cost;
+    } else { // tel-in / tel-out
+      if (entry.currency === 'INR') {
+        const inrCost = Math.ceil(v1) * region.rate;
+        usd = inrCost / rate;
+        perUnit = region.rate / rate;
+      } else {
+        usd = v1 * region.rate;
+        perUnit = region.rate;
+      }
     }
+  }
 
-    const fmtUSD = v => v === 0 ? "—" : `$${v < 0.0001 ? v.toExponential(2) : v.toFixed(4)}`;
-    const fmtINR = v => v === 0 ? "—" : `₹${v.toFixed(2)}`;
+  const inr = usd * rate;
+  el.querySelector('.usd').textContent = fU(usd);
+  el.querySelector('.inr').textContent = fI(inr);
+  el.querySelector('.usd').classList.toggle('active', !!sel && usd > 0);
+  el.querySelector('.inr').classList.toggle('active', !!sel && inr > 0);
+  return { usd, perUnit };
+}
 
-    const isMobile = () => window.innerWidth <= 640;
+// ── MAIN RECALC ───────────────────────────────────────────────────────────────
+function recalc() {
+  const rate = parseFloat(document.getElementById('usd-rate').value) || 91;
+  let inboundTotal = 0, outboundTotal = 0, actionTotal = 0, creditsTotal = 0;
 
-    function init() {
-        const container = document.getElementById('rows-container');
-        let html = '';
+  // Voice rows per direction — collect total USD and telephony minutes per direction
+  const dirMins = {};  // dir.autoId -> minutes from telephony row
+  const dirTotals = {}; // dir.autoId -> total USD for that direction
 
-        ROWS_CONFIG.forEach(row => {
-            const opts = allOptions[row.type];
-            const optionsHtml = opts.map((o, idx) => `<option value="${idx}">${o.label}</option>`).join('');
-
-            html += `
-                <div class="grid-row" id="row-${row.type}">
-                    <!-- Desktop col 1 / Mobile top-bar label -->
-                    <div class="row-top">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div style="width: 8px; height: 8px; border-radius: 50%; background: ${row.color}; flex-shrink:0;"></div>
-                            <span style="font-size: 13px; font-weight: 600; color: #334155;">${row.label}</span>
-                        </div>
-                        <!-- Mobile-only cost display (hidden on desktop via CSS) -->
-                        <div class="cost-pair mobile-costs">
-                            <div class="val-text usd-label" style="color:#cbd5e1; font-size:12px;">—</div>
-                            <div class="val-text inr-label" style="color:#cbd5e1; font-size:12px;">—</div>
-                        </div>
-                    </div>
-
-                    <!-- Provider select -->
-                    <div style="padding-right: 12px;" class="select-col">
-                        <select onchange="calculate()">
-                            <option value="">— select —</option>
-                            ${optionsHtml}
-                        </select>
-                    </div>
-
-                    <!-- Usage inputs -->
-                    <div class="usage-row" style="padding-right: 12px;">
-                        <div class="input-group" style="flex: 1;">
-                            <div class="input-label">${row.inputLabel}</div>
-                            <input type="number" class="val1" value="${getDefaultVal(row.type)}" oninput="calculate()">
-                        </div>
-                        ${row.input2 ? `
-                            <div class="input-group" style="flex: 1;">
-                                <div class="input-label">${row.input2Label}</div>
-                                <input type="number" class="val2" value="1000" oninput="calculate()">
-                            </div>
-                        ` : ''}
-                    </div>
-
-                    <!-- Desktop-only cost columns -->
-                    <div class="val-text usd-label desktop-cost" style="color: #cbd5e1">—</div>
-                    <div class="val-text inr-label desktop-cost" style="color: #cbd5e1">—</div>
-                </div>
-            `;
-        });
-
-        container.innerHTML = html;
-
-        // Re-wire total row for mobile
-        applyLayout();
-        calculate();
-    }
-
-    function applyLayout() {
-        const mobile = isMobile();
-        const totalRow = document.getElementById('total-row-desktop');
-
-        // Show/hide cost columns
-        document.querySelectorAll('.desktop-cost').forEach(el => {
-            el.style.display = mobile ? 'none' : '';
-        });
-        document.querySelectorAll('.mobile-costs').forEach(el => {
-            el.style.display = mobile ? 'flex' : 'none';
-        });
-        document.querySelectorAll('.select-col').forEach(el => {
-            el.style.paddingRight = mobile ? '0' : '12px';
-        });
-
-        // Total row: swap layout
-        if (mobile) {
-            totalRow.style.display = 'flex';
-            totalRow.innerHTML = `
-                <span class="total-label">Total Cost</span>
-                <div class="total-costs">
-                    <div id="total-usd" class="total-text" style="color:#6366f1;">$0.0000</div>
-                    <div id="total-inr" class="total-text" style="color:#f59e0b;">₹0.00</div>
-                </div>
-            `;
-        } else {
-            totalRow.style.display = 'grid';
-            totalRow.innerHTML = `
-                <div style="grid-column: 1 / 4; font-size: 13px; font-weight: 700; color: #334155;">Total Cost</div>
-                <div id="total-usd" class="total-text" style="text-align: right; color: #6366f1;">$0.0000</div>
-                <div id="total-inr" class="total-text" style="text-align: right; color: #f59e0b;">₹0.00</div>
-            `;
-        }
-    }
-
-    function getDefaultVal(type) {
-        const defaults = { telephony: 1, stt: 1, llm: 10000, tts: 1000 };
-        return defaults[type] || 0;
-    }
-
-    function calculate() {
-        let totalUSD = 0;
-        let totalINR = 0;
-        const mobile = isMobile();
-
-        ROWS_CONFIG.forEach(row => {
-            const rowEl = document.getElementById(`row-${row.type}`);
-            const select = rowEl.querySelector('select');
-            const v1 = parseFloat(rowEl.querySelector('.val1').value) || 0;
-            const v2 = row.input2 ? (parseFloat(rowEl.querySelector('.val2').value) || 0) : 0;
-
-            const selectedIdx = select.value;
-            const selection = selectedIdx !== "" ? allOptions[row.type][selectedIdx] : null;
-
-            let usd = 0, inr = 0;
-
-            if (selection) {
-                const { entry, model, region, direction } = selection;
-                if (entry.type === "llm") {
-                    usd = (v1 / 1e6) * model.input + (v2 / 1e6) * model.output;
-                    inr = usd * USD_TO_INR;
-                } else if (entry.type === "stt") {
-                    usd = v1 * model.cost;
-                    inr = usd * USD_TO_INR;
-                } else if (entry.type === "tts") {
-                    usd = (v1 / 1000) * model.cost;
-                    inr = usd * USD_TO_INR;
-                } else if (entry.type === "telephony") {
-                    if (entry.billing === "per_pulse") {
-                        const pulses = Math.ceil(v1);
-                        inr = pulses * (direction === "inbound" ? region.inbound : region.outbound);
-                        usd = inr / USD_TO_INR;
-                    } else {
-                        usd = v1 * (direction === "inbound" ? region.inbound : region.outbound);
-                        inr = usd * USD_TO_INR;
-                    }
-                }
-            }
-
-            // Update all usd-label / inr-label elements in this row
-            rowEl.querySelectorAll('.usd-label').forEach(el => {
-                el.innerText = fmtUSD(usd);
-                el.style.color = selection ? "#0f172a" : "#cbd5e1";
-            });
-            rowEl.querySelectorAll('.inr-label').forEach(el => {
-                el.innerText = fmtINR(inr);
-                el.style.color = selection ? "#0f172a" : "#cbd5e1";
-            });
-
-            totalUSD += usd;
-            totalINR += inr;
-        });
-
-        const usdEl = document.getElementById('total-usd');
-        const inrEl = document.getElementById('total-inr');
-        if (usdEl) usdEl.innerText = fmtUSD(totalUSD);
-        if (inrEl) inrEl.innerText = fmtINR(totalINR);
-    }
-
-    // Re-apply layout on resize
-    let resizeTimer;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => { applyLayout(); calculate(); }, 100);
+  DIRECTIONS.forEach(dir => {
+    let dirTotal = 0;
+    let telMins  = 0;
+    dir.rows.forEach(row => {
+      const { usd } = calcVoiceRow(row, rate);
+      dirTotal += usd;
+      creditsTotal += usd / CREDIT_UNIT;
+      if (row.type === 'tel-in' || row.type === 'tel-out') {
+        const el = document.getElementById(row.id);
+        telMins = parseFloat(el.querySelector('.v1').value) || 0;
+        dirMins[dir.autoId] = telMins;
+      }
     });
 
-    init();
+    // Add server cost: server $/min × telephony minutes
+    const prefix = dir.dir === 'inbound' ? 'in' : 'out';
+    const { perMin: srvPerMin } = calcServerUSD(prefix, rate);
+    const srvUSD = srvPerMin * (telMins || 1);
+    dirTotal += srvUSD;
+    creditsTotal += srvUSD / CREDIT_UNIT;
+
+    dirTotals[dir.autoId] = dirTotal;
+    if (dir.dir === 'inbound')  inboundTotal  = dirTotal;
+    if (dir.dir === 'outbound') outboundTotal = dirTotal;
+
+    // Update subtotal row
+    const usdId = dir.dir === 'inbound' ? 'sub-in-usd'  : 'sub-out-usd';
+    const inrId = dir.dir === 'inbound' ? 'sub-in-inr'  : 'sub-out-inr';
+    document.getElementById(usdId).textContent = fU(dirTotal);
+    document.getElementById(inrId).textContent = fI(dirTotal * rate);
+  });
+
+  // Push full stack cost-per-minute (total / mins) into Agent Actions Voice Call base fields
+  ACTIONS.forEach(a => {
+    if (!a.autoFrom) return;
+    const mins   = dirMins[a.autoFrom]   || 0;
+    const total  = dirTotals[a.autoFrom] || 0;
+    if (mins <= 0) return;
+    const costPerMin = total / mins;
+    const el = document.querySelector('#arow-' + a.id + ' .base-input');
+    if (el) el.value = costPerMin.toFixed(6);
+  });
+
+  // Agent Actions server cost — direct flat rate, no usage multiply
+  const actSrvRate = parseFloat(document.getElementById('srv-act-rate').value) || 0;
+  document.getElementById('srv-act-usd').textContent = fU(actSrvRate);
+  document.getElementById('srv-act-inr').textContent = fI(actSrvRate * rate);
+  actionTotal  += actSrvRate;
+  creditsTotal += actSrvRate / CREDIT_UNIT;
+
+  // Action rows
+  ACTIONS.forEach(a => {
+    const el      = document.getElementById(`arow-${a.id}`);
+    const usage   = parseFloat(el.querySelector('.usage-input').value)  || 0;
+    const base    = parseFloat(el.querySelector('.base-input').value)   || 0;
+    const markupP = parseFloat(el.querySelector('.markup-input').value) || 0;
+    const usd = base * (1 + markupP / 100) * (usage / (a.unitsValue || 1));
+    const inr = usd * rate;
+    el.querySelector('.usd').textContent = fU(usd);
+    el.querySelector('.inr').textContent = fI(inr);
+    el.querySelector('.usd').classList.toggle('active', usd > 0);
+    el.querySelector('.inr').classList.toggle('active', inr > 0);
+    actionTotal  += usd;
+    creditsTotal += usd / CREDIT_UNIT;
+  });
+
+  const voiceTotal = inboundTotal + outboundTotal;
+  const grandTotal = voiceTotal + actionTotal;
+
+  document.getElementById('sum-inbound').textContent     = fU(inboundTotal);
+  document.getElementById('sum-inbound-inr').textContent = fI(inboundTotal * rate);
+  document.getElementById('sum-outbound').textContent    = fU(outboundTotal);
+  document.getElementById('sum-outbound-inr').textContent= fI(outboundTotal * rate);
+  document.getElementById('sum-actions').textContent     = fU(actionTotal);
+  document.getElementById('sum-actions-inr').textContent = fI(actionTotal * rate);
+  document.getElementById('sum-credits').textContent     = Math.round(creditsTotal).toLocaleString();
+  document.getElementById('sum-total').textContent       = fU(grandTotal);
+  document.getElementById('sum-total-inr').textContent   = fI(grandTotal * rate);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderVoice();
+renderActions();
+recalc();
+
+let resizeTimer;
+window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(recalc, 100); });
 </script>
 </body>
 </html>
